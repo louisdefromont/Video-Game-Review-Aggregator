@@ -46,8 +46,15 @@ public class SteamStoreScraperService {
 				.header("sec-ch-ua-platform", "\"Windows\"")
 				.asString();
 		Document doc = Jsoup.parse(response.getBody());
-		long id = Long.parseLong(doc.select("a").first().attr("data-ds-appid"));
-		return scrape(id);
+		try {
+			long id = Long.parseLong(doc.select("a").first().attr("data-ds-appid"));
+			return scrape(id);
+		} catch (NullPointerException e) {
+			System.out.println("Cannot find appid for " + title);
+		} catch (NumberFormatException e) {
+			System.out.println("Error parsing appid from " + title);
+		}
+		return null;
 	}
 
 	public VideoGame scrapeFromSource(String url) {
@@ -84,8 +91,13 @@ public class SteamStoreScraperService {
 				averageScore = Double.parseDouble(doc.select("div.user_reviews_summary_row").get(1).attr("data-tooltip-html").split("% ")[0]);
 				numberOfReviews = Double.parseDouble(doc.select("div.user_reviews_summary_row").get(1).attr("data-tooltip-html").split(" ")[3].replace(",", ""));
 			} catch (NumberFormatException e) {
-				averageScore = Double.parseDouble(doc.select("div.user_reviews_summary_row").get(0).attr("data-tooltip-html").split("% ")[0]);
-				numberOfReviews = Double.parseDouble(doc.select("div.user_reviews_summary_row").get(0).attr("data-tooltip-html").split(" ")[3].replace(",", ""));
+				try {
+					averageScore = Double.parseDouble(doc.select("div.user_reviews_summary_row").get(0).attr("data-tooltip-html").split("% ")[0]);
+					numberOfReviews = Double.parseDouble(doc.select("div.user_reviews_summary_row").get(0).attr("data-tooltip-html").split(" ")[3].replace(",", ""));
+				} catch (NumberFormatException e2) {
+					averageScore = -1;
+					numberOfReviews = 0;
+				}
 			}
 			ReviewSource reviewSource = new ReviewSource();
 			reviewSource.setSource(url);

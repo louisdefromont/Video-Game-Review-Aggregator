@@ -2,11 +2,15 @@ package me.louisdefromont.vgreviews.service;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
 import kong.unirest.HttpResponse;
@@ -18,6 +22,29 @@ import me.louisdefromont.vgreviews.VideoGame;
 
 @Service
 public class OpenCriticScraperService {
+
+	public List<String> last90Releases() {
+		List<String> videoGameSources = new ArrayList<>();
+		Document doc;
+		Elements games = new Elements();
+		int page = 1;
+		do {
+			try {
+				System.out.println("Collecting links from page " + page + "...");
+				doc = Jsoup.connect("https://opencritic.com/browse/all/last90/date?page=" + page).get();
+				games = doc.select(".game-name a");
+				for (Element game : games) {
+					videoGameSources.add("https://opencritic.com" + game.attr("href"));
+				}
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+			page++;
+		} while (games.size() > 0);
+		return videoGameSources;
+	}
+
 	public VideoGame scrape(VideoGame videoGame) {
 		for (ReviewSource reviewSource : videoGame.getReviews()) {
 			if (reviewSource.getSource().contains("opencritic")) {
@@ -64,19 +91,30 @@ public class OpenCriticScraperService {
 		String url = "https://opencritic.com/game/" + id + "/" + name.replace(" ", "-");
 		try {
 			Document doc = Jsoup.connect(url).get();
+			String title = doc.selectFirst("h1").text();
 			Element platformsElement = doc.selectFirst("div.platforms");
 			LocalDate releaseDate = LocalDate.parse(platformsElement.text().split(" - ")[0], java.time.format.DateTimeFormatter.ofPattern("MMM d, yyyy"));
 			String platforms = platformsElement.text().split(" - ")[1];
 			Element publishersElement = doc.selectFirst("div.companies");
 			String publishers = publishersElement.text();
 			VideoGame videoGame = new VideoGame();
-			videoGame.setTitle(name);
+			videoGame.setTitle(title);
 			videoGame.setPlatforms(platforms);
 			videoGame.setReleaseDate(releaseDate);
 			videoGame.setPublishers(publishers);
 
-			double averageScore = Double.parseDouble(doc.selectFirst("div.game-scores .inner-orb").text());
-			double criticCount = Double.parseDouble(doc.selectFirst(".text-right.my-1").text().split(" ")[2]);
+			double averageScore;
+			try {
+				averageScore = Double.parseDouble(doc.selectFirst("div.game-scores .inner-orb").text());
+			} catch (Exception e) {
+				averageScore = -1;
+			}
+			double criticCount;
+			try {
+				criticCount = Double.parseDouble(doc.selectFirst(".text-right.my-1").text().split(" ")[2]);
+			} catch (NullPointerException e) {
+				criticCount = 0;
+			}
 			ReviewSource reviewSource = new ReviewSource();
 			reviewSource.setSource(url);
 			reviewSource.setScrapeDate(LocalDate.now());
