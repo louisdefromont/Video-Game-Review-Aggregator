@@ -55,7 +55,8 @@ public class OpenCriticScraperService {
 	}
 
 	public VideoGame scrape(String title) {
-		HttpResponse<String> response = Unirest.get("https://api.opencritic.com/api/meta/search?criteria=" + title.replace(" ", "%20"))
+		HttpResponse<String> response = Unirest
+				.get("https://api.opencritic.com/api/meta/search?criteria=" + title.replace(" ", "%20"))
 				.header("authority", "api.opencritic.com")
 				.header("accept", "application/json, text/plain, */*")
 				.header("accept-language", "en-US,en;q=0.9,fr;q=0.8")
@@ -93,7 +94,8 @@ public class OpenCriticScraperService {
 			Document doc = Jsoup.connect(url).get();
 			String title = doc.selectFirst("h1").text();
 			Element platformsElement = doc.selectFirst("div.platforms");
-			LocalDate releaseDate = LocalDate.parse(platformsElement.text().split(" - ")[0], java.time.format.DateTimeFormatter.ofPattern("MMM d, yyyy"));
+			LocalDate releaseDate = LocalDate.parse(platformsElement.text().split(" - ")[0],
+					java.time.format.DateTimeFormatter.ofPattern("MMM d, yyyy"));
 			String platforms = platformsElement.text().split(" - ")[1];
 			Element publishersElement = doc.selectFirst("div.companies");
 			String publishers = publishersElement.text();
@@ -103,24 +105,17 @@ public class OpenCriticScraperService {
 			videoGame.setReleaseDate(releaseDate);
 			videoGame.setPublishers(publishers);
 
-			double averageScore;
 			try {
-				averageScore = Double.parseDouble(doc.selectFirst("div.game-scores .inner-orb").text());
-			} catch (Exception e) {
-				averageScore = -1;
-			}
-			double criticCount;
-			try {
-				criticCount = Double.parseDouble(doc.selectFirst(".text-right.my-1").text().split(" ")[2]);
+				double averageScore = Double.parseDouble(doc.selectFirst("div.game-scores .inner-orb").text());
+				double criticCount = Double.parseDouble(doc.selectFirst(".text-right.my-1").text().split(" ")[2]);
+				ReviewSource reviewSource = new ReviewSource();
+				reviewSource.setSource(url);
+				reviewSource.setScrapeDate(LocalDate.now());
+				reviewSource.setAverageScore(averageScore);
+				reviewSource.setNumberOfReviews(criticCount);
+				videoGame.setReviews(List.of(reviewSource));
 			} catch (NullPointerException e) {
-				criticCount = 0;
 			}
-			ReviewSource reviewSource = new ReviewSource();
-			reviewSource.setSource(url);
-			reviewSource.setScrapeDate(LocalDate.now());
-			reviewSource.setAverageScore(averageScore);
-			reviewSource.setNumberOfReviews(criticCount);
-			videoGame.setReviews(List.of(reviewSource));
 
 			return videoGame;
 		} catch (IOException e) {

@@ -18,9 +18,11 @@ import me.louisdefromont.vgreviews.VideoGame;
 @Service
 public class SteamStoreScraperService {
 	public VideoGame scrape(VideoGame videoGame) {
-		for (ReviewSource reviewSource : videoGame.getReviews()) {
-			if (reviewSource.getSource().contains("steampowered")) {
-				return scrapeFromSource(reviewSource.getSource());
+		if (videoGame.getReviews() != null) {
+			for (ReviewSource reviewSource : videoGame.getReviews()) {
+				if (reviewSource.getSource().contains("steampowered")) {
+					return scrapeFromSource(reviewSource.getSource());
+				}
 			}
 		}
 		return scrape(videoGame.getTitle());
@@ -28,7 +30,8 @@ public class SteamStoreScraperService {
 
 	public VideoGame scrape(String title) {
 		HttpResponse<String> response = Unirest.get(
-				"https://store.steampowered.com/search/suggest?term=" + title.replace(" ", "%2B") + "&f=games&cc=US&realm=1&l=english&v=22291786&use_store_query=1&use_search_spellcheck=1")
+				"https://store.steampowered.com/search/suggest?term=" + title.replace(" ", "%2B")
+						+ "&f=games&cc=US&realm=1&l=english&v=22291786&use_store_query=1&use_search_spellcheck=1")
 				.header("Accept", "*/*")
 				.header("Accept-Language", "en-US,en;q=0.9,fr;q=0.8")
 				.header("Cache-Control", "no-cache")
@@ -50,7 +53,7 @@ public class SteamStoreScraperService {
 			long id = Long.parseLong(doc.select("a").first().attr("data-ds-appid"));
 			return scrape(id);
 		} catch (NullPointerException e) {
-			System.out.println("Cannot find appid for " + title);
+			// System.out.println("Cannot find appid for " + title);
 		} catch (NumberFormatException e) {
 			System.out.println("Error parsing appid from " + title);
 		}
@@ -88,15 +91,20 @@ public class SteamStoreScraperService {
 			double averageScore;
 			double numberOfReviews;
 			try {
-				averageScore = Double.parseDouble(doc.select("div.user_reviews_summary_row").get(1).attr("data-tooltip-html").split("% ")[0]);
-				numberOfReviews = Double.parseDouble(doc.select("div.user_reviews_summary_row").get(1).attr("data-tooltip-html").split(" ")[3].replace(",", ""));
+				averageScore = Double.parseDouble(
+						doc.select("div.user_reviews_summary_row").get(1).attr("data-tooltip-html").split("% ")[0]);
+				numberOfReviews = Double.parseDouble(
+						doc.select("div.user_reviews_summary_row").get(1).attr("data-tooltip-html").split(" ")[3]
+								.replace(",", ""));
 			} catch (NumberFormatException e) {
 				try {
-					averageScore = Double.parseDouble(doc.select("div.user_reviews_summary_row").get(0).attr("data-tooltip-html").split("% ")[0]);
-					numberOfReviews = Double.parseDouble(doc.select("div.user_reviews_summary_row").get(0).attr("data-tooltip-html").split(" ")[3].replace(",", ""));
+					averageScore = Double.parseDouble(
+							doc.select("div.user_reviews_summary_row").get(0).attr("data-tooltip-html").split("% ")[0]);
+					numberOfReviews = Double.parseDouble(
+							doc.select("div.user_reviews_summary_row").get(0).attr("data-tooltip-html").split(" ")[3]
+									.replace(",", ""));
 				} catch (NumberFormatException e2) {
-					averageScore = -1;
-					numberOfReviews = 0;
+					return videoGame;
 				}
 			}
 			ReviewSource reviewSource = new ReviewSource();
