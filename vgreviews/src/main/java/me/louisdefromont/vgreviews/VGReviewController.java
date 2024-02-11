@@ -2,7 +2,6 @@ package me.louisdefromont.vgreviews;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -10,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import me.louisdefromont.vgreviews.service.GlitchWaveScraperService;
 import me.louisdefromont.vgreviews.service.OpenCriticScraperService;
 import me.louisdefromont.vgreviews.service.SteamDBScraperService;
 import me.louisdefromont.vgreviews.service.SteamStoreScraperService;
@@ -30,6 +30,8 @@ public class VGReviewController {
 	private SteamDBScraperService steamDBScraperService;
 	@Autowired
 	private SteamStoreScraperService steamStoreScraperService;
+	@Autowired
+	private GlitchWaveScraperService glitchWaveScraperService;
 
 	@Autowired
 	private AdjustedScoreService adjustedScoreService;
@@ -52,6 +54,11 @@ public class VGReviewController {
 	@GetMapping(path = "/scrape/steamstore")
 	public VideoGame scrapeSteamStore(String title) {
 		return steamStoreScraperService.scrape(title);
+	}
+
+	@GetMapping(path = "/scrape/glitchwave")
+	public VideoGame scrapeGlitchWave(String title) {
+		return glitchWaveScraperService.scrape(title);
 	}
 
 	@GetMapping(path = "/search")

@@ -24,6 +24,8 @@ public class VideoGameScraperService {
 	private SteamStoreScraperService steamStoreScraperService;
 	@Autowired
 	private MetaCriticScraperService metaCriticScraperService;
+	@Autowired
+	private GlitchWaveScraperService glitchWaveScraperService;
 
 	public List<VideoGame> last90Releases() {
 		List<VideoGame> videoGames = new ArrayList<>();
@@ -52,8 +54,10 @@ public class VideoGameScraperService {
 		VideoGame openCriticVideoGame = openCriticScraperService.scrape(title);
 		VideoGame steamVideoGame = steamStoreScraperService.scrape(title);
 		VideoGame metaCriticVideoGame = metaCriticScraperService.scrape(title);
+		// VideoGame glitchWaveVideoGame = glitchWaveScraperService.scrape(title);
 		VideoGame combinedVideoGame = combineVideoGameInfo(openCriticVideoGame, steamVideoGame);
 		combinedVideoGame = combineVideoGameInfo(combinedVideoGame, metaCriticVideoGame);
+		// combinedVideoGame = combineVideoGameInfo(combinedVideoGame, glitchWaveVideoGame);
 		videoGameRepository.save(combinedVideoGame);
 		return CompletableFuture.completedFuture(combinedVideoGame);
 	}

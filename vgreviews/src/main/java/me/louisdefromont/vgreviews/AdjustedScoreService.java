@@ -16,6 +16,7 @@ public class AdjustedScoreService {
 	public double metaCriticAverageUserScore;
 	public double openCriticAverageScore;
 	public double steamAverageScore;
+	public double glitchWaveAverageScore;
 	public double overallAverageScore;
 
 	public void init() {
@@ -33,10 +34,13 @@ public class AdjustedScoreService {
 		double metaCriticUserScoreSum = 0;
 		double openCriticScoreSum = 0;
 		double steamScoreSum = 0;
+		double glitchWaveScoreSum = 0;
+
 		double metaCriticCriticScoreCount = 0;
 		double metaCriticUserScoreCount = 0;
 		double openCriticScoreCount = 0;
 		double steamScoreCount = 0;
+		double glitchWaveScoreCount = 0;
 
 		for (VideoGame videoGame : videoGames) {
 			for (ReviewSource review : videoGame.getReviews()) {
@@ -52,6 +56,9 @@ public class AdjustedScoreService {
 				} else if (review.getSourceName().equals("Steam")) {
 					steamScoreSum += review.getAverageScore();
 					steamScoreCount++;
+				} else if (review.getSourceName().equals("GlitchWave")) {
+					glitchWaveScoreSum += review.getAverageScore();
+					glitchWaveScoreCount++;
 				}
 			}
 
@@ -61,8 +68,9 @@ public class AdjustedScoreService {
 		metaCriticAverageUserScore = metaCriticUserScoreSum / metaCriticUserScoreCount;
 		openCriticAverageScore = openCriticScoreSum / openCriticScoreCount;
 		steamAverageScore = steamScoreSum / steamScoreCount;
+		glitchWaveAverageScore = glitchWaveScoreSum / glitchWaveScoreCount;
 		overallAverageScore = (metaCriticAverageCriticScore + metaCriticAverageUserScore + openCriticAverageScore
-				+ steamAverageScore) / 4.0;
+				+ steamAverageScore + glitchWaveAverageScore) / 5.0;
 	}
 
 	public double calculateAdjustedScore(VideoGame videoGame) {
@@ -83,6 +91,9 @@ public class AdjustedScoreService {
 				criticScoreCount += review.getNumberOfReviews();
 			} else if (review.getSourceName().equals("Steam")) {
 				userScoreSum += ((review.getAverageScore() - steamAverageScore) + overallAverageScore) * review.getNumberOfReviews();
+				userScoreCount += review.getNumberOfReviews();
+			} else if (review.getSourceName().equals("GlitchWave")) {
+				userScoreSum += ((review.getAverageScore() - glitchWaveAverageScore) + overallAverageScore) * review.getNumberOfReviews();
 				userScoreCount += review.getNumberOfReviews();
 			}
 		}
