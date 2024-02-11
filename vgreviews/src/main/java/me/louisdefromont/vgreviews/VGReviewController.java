@@ -66,10 +66,24 @@ public class VGReviewController {
 		return videoGameRepository.findByTitleContainingIgnoreCase(query);
 	}
 
-	@GetMapping(path = "/all")
+	@GetMapping(path = "/adjusted/all")
 	public List<AdjustedGameScore> allGamesByAdjustedScore() {
 		List<AdjustedGameScore> adjustedGameScores = new ArrayList<>();
 		Iterable<VideoGame> videoGames = videoGameRepository.findAll();
+		for (VideoGame videoGame : videoGames) {
+			AdjustedGameScore adjustedGameScore = new AdjustedGameScore();
+			adjustedGameScore.setAdjustedScore(adjustedScoreService.calculateAdjustedScore(videoGame));
+			adjustedGameScore.setVideoGame(videoGame);
+			adjustedGameScores.add(adjustedGameScore);
+		}
+		adjustedGameScores.sort((a, b) -> Double.compare(b.getAdjustedScore(), a.getAdjustedScore()));
+		return adjustedGameScores;
+	}
+
+	@GetMapping(path = "/adjusted/search")
+	public List<AdjustedGameScore> searchByAdjustedScore(String query) {
+		List<AdjustedGameScore> adjustedGameScores = new ArrayList<>();
+		List<VideoGame> videoGames = videoGameRepository.findByTitleContainingIgnoreCase(query);
 		for (VideoGame videoGame : videoGames) {
 			AdjustedGameScore adjustedGameScore = new AdjustedGameScore();
 			adjustedGameScore.setAdjustedScore(adjustedScoreService.calculateAdjustedScore(videoGame));

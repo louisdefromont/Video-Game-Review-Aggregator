@@ -58,7 +58,9 @@ public class VideoGameScraperService {
 		VideoGame combinedVideoGame = combineVideoGameInfo(openCriticVideoGame, steamVideoGame);
 		combinedVideoGame = combineVideoGameInfo(combinedVideoGame, metaCriticVideoGame);
 		// combinedVideoGame = combineVideoGameInfo(combinedVideoGame, glitchWaveVideoGame);
-		videoGameRepository.save(combinedVideoGame);
+		if (combinedVideoGame != null) {
+			videoGameRepository.save(combinedVideoGame);
+		}
 		return CompletableFuture.completedFuture(combinedVideoGame);
 	}
 

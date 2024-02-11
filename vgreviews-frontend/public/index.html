@@ -14,7 +14,7 @@
                 const query = document.getElementById("searchInput").value;
 
                 // Perform GET request to localhost:8080/api/search
-                fetch(`http://localhost:8080/api/search?query=${encodeURIComponent(query)}`)
+                fetch(`http://localhost:8080/api/adjusted/search?query=${encodeURIComponent(query)}`)
                     .then(response => response.json())
                     .then(data => {
                         // Display search results
@@ -29,24 +29,27 @@
                 const resultList = document.getElementById("searchResults");
                 resultList.innerHTML = ""; // Clear previous results
 
-                results.forEach(game => {
+                results.forEach(result => {
                     const listItem = document.createElement("li");
                     listItem.innerHTML = `
-                        <h2>${game.title}</h2>
-                        <p><strong>Platforms:</strong> ${game.platforms}</p>
-                        <p><strong>Release Date:</strong> ${game.releaseDate}</p>
-                        <p><strong>Publishers:</strong> ${game.publishers}</p>
-                        <p><strong>Genres:</strong> ${game.genres}</p>
-                        <h3>Reviews:</h3>
-                        <ul>
-                            ${game.reviews.map(review => `
-                                <li>
-                                    <a href="${review.source}">Source</a>
-                                    <p><strong>Average Score:</strong> ${review.averageScore}</p>
-                                    <p><strong>Number of Reviews:</strong> ${review.numberOfReviews}</p>
-                                </li>
-                            `).join('')}
-                        </ul>
+                        <h2>${result.videoGame.title}</h2>
+                        <h3><strong>Adjusted Score:</strong> ${result.adjustedScore.toFixed(2)}</h3>
+                        <p><strong>Platforms:</strong> ${result.videoGame.platforms}</p>
+                        <p><strong>Release Date:</strong> ${result.videoGame.releaseDate}</p>
+                        <p><strong>Publishers:</strong> ${result.videoGame.publishers}</p>
+                        <p><strong>Genres:</strong> ${result.videoGame.genres}</p>
+                        <details>
+                            <summary>Reviews</summary>
+                            <ul>
+                                ${result.videoGame.reviews.map(review => `
+                                    <li>
+                                        <a href="${review.sourceURL}">${review.sourceName}</a>
+                                        <p><strong>Average Score:</strong> ${review.averageScore}</p>
+                                        <p><strong>Number of Reviews:</strong> ${review.numberOfReviews}</p>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </details>
                     `;
                     resultList.appendChild(listItem);
                 });
