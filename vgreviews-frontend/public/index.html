@@ -7,14 +7,34 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const form = document.getElementById("searchForm");
+            const genreDropdown = document.getElementById("genreDropdown");
+
+            // Event listener for genre dropdown change
+            genreDropdown.addEventListener("change", function () {
+                const selectedGenre = genreDropdown.value;
+                if (selectedGenre === "other") {
+                    document.getElementById("otherGenreInput").style.display = "block";
+                } else {
+                    document.getElementById("otherGenreInput").style.display = "none";
+                }
+            });
+
             form.addEventListener("submit", function (event) {
                 event.preventDefault(); // Prevent default form submission
 
                 // Get the search query from the input field
                 const query = document.getElementById("searchInput").value;
+                let genreQuery = "";
+
+                // If the "Other" option is selected, use the input field value
+                if (genreDropdown.value === "other") {
+                    genreQuery = document.getElementById("otherGenreInput").value;
+                } else {
+                    genreQuery = genreDropdown.value;
+                }
 
                 // Perform GET request to localhost:8080/api/search
-                fetch(`http://localhost:8080/api/adjusted/search?query=${encodeURIComponent(query)}`)
+                fetch(`http://localhost:8080/api/adjusted/search?query=${encodeURIComponent(query)}&genre=${encodeURIComponent(genreQuery)}`)
                     .then(response => response.json())
                     .then(data => {
                         // Display search results
@@ -67,6 +87,14 @@
     <h1>Search Page</h1>
     <form id="searchForm">
         <input type="text" id="searchInput" placeholder="Enter your search query">
+        <select id="genreDropdown">
+			<option value="">(Select Genre)</option>
+            <option value="action">Action</option>
+            <option value="adventure">Adventure</option>
+            <option value="rpg">RPG</option>
+            <option value="other">Other</option>
+        </select>
+        <input type="text" id="otherGenreInput" placeholder="Enter other genre" style="display: none;">
         <button type="submit">Search</button>
     </form>
     <ul id="searchResults"></ul>

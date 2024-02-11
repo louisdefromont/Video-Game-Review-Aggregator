@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import me.louisdefromont.vgreviews.service.GlitchWaveScraperService;
@@ -81,9 +82,15 @@ public class VGReviewController {
 	}
 
 	@GetMapping(path = "/adjusted/search")
-	public List<AdjustedGameScore> searchByAdjustedScore(String query) {
+	public List<AdjustedGameScore> searchByAdjustedScoreAndGenre(String query, @RequestParam(required = false) String genre) {
 		List<AdjustedGameScore> adjustedGameScores = new ArrayList<>();
-		List<VideoGame> videoGames = videoGameRepository.findByTitleContainingIgnoreCase(query);
+		List<VideoGame> videoGames;
+		if (genre == null) {
+			videoGames = videoGameRepository.findByTitleContainingIgnoreCase(query);
+		} else {
+			videoGames = videoGameRepository.findByTitleContainingIgnoreCaseAndGenreContainingIgnoreCase(query,
+				genre);
+		}
 		for (VideoGame videoGame : videoGames) {
 			AdjustedGameScore adjustedGameScore = new AdjustedGameScore();
 			adjustedGameScore.setAdjustedScore(adjustedScoreService.calculateAdjustedScore(videoGame));
