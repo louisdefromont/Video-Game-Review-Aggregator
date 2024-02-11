@@ -2,8 +2,12 @@ package me.louisdefromont.vgreviews.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 import me.louisdefromont.vgreviews.ReviewSource;
@@ -24,22 +28,36 @@ public class VideoGameScraperService {
 	public List<VideoGame> last90Releases() {
 		List<VideoGame> videoGames = new ArrayList<>();
 		List<String> last90Releases = openCriticScraperService.last90Releases();
-		for (String source : last90Releases) {
-			VideoGame videoGame = videoGameRepository.findByReviewSource(source);
-			if (videoGame == null) {
-				VideoGame openCriticVideoGame = openCriticScraperService.scrapeFromSource(source);
-				VideoGame steamVideoGame = steamStoreScraperService.scrape(openCriticVideoGame);
-				VideoGame metaCriticVideoGame = metaCriticScraperService.scrape(openCriticVideoGame.getTitle());
-				VideoGame combinedVideoGame = combineVideoGameInfo(openCriticVideoGame, steamVideoGame);
-				combinedVideoGame = combineVideoGameInfo(combinedVideoGame, metaCriticVideoGame);
-				videoGameRepository.save(combinedVideoGame);
-				videoGames.add(combinedVideoGame);
-			} else {
-				videoGames.add(videoGame);
+		List<CompletableFuture<VideoGame>> videoGameFutures = new ArrayList<>();
+		for (String title : last90Releases) {
+			videoGameFutures.add(scrapeTitle(title));
+		}
+		for (Future<VideoGame> videoGameFuture : videoGameFutures) {
+			try {
+				videoGames.add(videoGameFuture.get());
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 
 		return videoGames;
+	}
+
+	
+
+	@Async("taskExecutor")
+	public CompletableFuture<VideoGame> scrapeTitle(String title) {
+		VideoGame videoGame = videoGameRepository.findByTitle(title);
+		if (videoGame != null) {
+			return CompletableFuture.completedFuture(videoGame);
+		}
+		VideoGame openCriticVideoGame = openCriticScraperService.scrape(title);
+		VideoGame steamVideoGame = steamStoreScraperService.scrape(title);
+		VideoGame metaCriticVideoGame = metaCriticScraperService.scrape(title);
+		VideoGame combinedVideoGame = combineVideoGameInfo(openCriticVideoGame, steamVideoGame);
+		combinedVideoGame = combineVideoGameInfo(combinedVideoGame, metaCriticVideoGame);
+		videoGameRepository.save(combinedVideoGame);
+		return CompletableFuture.completedFuture(combinedVideoGame);
 	}
 
 	private VideoGame combineVideoGameInfo(VideoGame videoGame1, VideoGame videoGame2) {
@@ -80,14 +98,31 @@ public class VideoGameScraperService {
 		} else {
 			combinedVideoGame.setGenres(videoGame2.getGenres());
 		}
+
 		List<ReviewSource> reviews = new ArrayList<>();
 		if (videoGame1.getReviews() != null) {
 			reviews.addAll(videoGame1.getReviews());
 		}
 		if (videoGame2.getReviews() != null) {
-			reviews.addAll(videoGame2.getReviews());
+			for (ReviewSource reviewSource : videoGame2.getReviews()) {
+				Boolean found = false;
+				for (ReviewSource review : reviews) {
+					if (review.getSource().equals(reviewSource.getSource())) {
+						found = true;
+						if (reviewSource.getNumberOfReviews() > review.getNumberOfReviews()) {
+							reviews.remove(review);
+							reviews.add(reviewSource);
+							break;
+						}
+					}
+				}
+				if (!found) {
+					reviews.add(reviewSource);
+				}
+			}
 		}
 		combinedVideoGame.setReviews(reviews);
+
 		if (videoGame1.getId() != null) {
 			combinedVideoGame.setId(videoGame1.getId());
 		} else {

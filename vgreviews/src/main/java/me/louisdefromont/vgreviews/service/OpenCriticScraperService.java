@@ -24,7 +24,7 @@ import me.louisdefromont.vgreviews.VideoGame;
 public class OpenCriticScraperService {
 
 	public List<String> last90Releases() {
-		List<String> videoGameSources = new ArrayList<>();
+		List<String> videoGameTitles = new ArrayList<>();
 		Document doc;
 		Elements games = new Elements();
 		int page = 1;
@@ -34,7 +34,7 @@ public class OpenCriticScraperService {
 				doc = Jsoup.connect("https://opencritic.com/browse/all/last90/date?page=" + page).get();
 				games = doc.select(".game-name a");
 				for (Element game : games) {
-					videoGameSources.add("https://opencritic.com" + game.attr("href"));
+					videoGameTitles.add(game.text());
 				}
 			} catch (Exception e) {
 				// TODO: handle exception
@@ -42,7 +42,7 @@ public class OpenCriticScraperService {
 			}
 			page++;
 		} while (games.size() > 0);
-		return videoGameSources;
+		return videoGameTitles;
 	}
 
 	public VideoGame scrape(VideoGame videoGame) {
@@ -119,8 +119,7 @@ public class OpenCriticScraperService {
 
 			return videoGame;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("Timeout Error scraping " + url);
 		}
 
 		return null;
