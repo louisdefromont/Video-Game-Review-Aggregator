@@ -44,7 +44,9 @@ public class MetaCriticScraperService {
 			for (int i = 0; i < items.length(); i++) {
 				JSONObject item = items.getJSONObject(i);
 				if (item.get("type").equals("game-title")) {
-					return scrapeFromSource("https://www.metacritic.com/game/" + item.getString("slug"));
+					if (item.getString("title").equalsIgnoreCase(title)) {
+						return scrapeFromSource("https://www.metacritic.com/game/" + item.getString("slug"));
+					}
 				}
 			}
 		} catch (JSONException e) {
@@ -84,9 +86,10 @@ public class MetaCriticScraperService {
 				ReviewSource criticReviewSource = new ReviewSource();
 				criticReviewSource.setAverageScore(criticAverageScore);
 				criticReviewSource.setNumberOfReviews(criticReviewCount);
-				criticReviewSource.setSource("https://www.metacritic.com"
+				criticReviewSource.setSourceURL("https://www.metacritic.com"
 						+ doc.selectFirst(".g-inner-spacing-bottom-medium .c-productScoreInfo_reviewsTotal a")
 								.attr("href"));
+				criticReviewSource.setSourceName("MetaCriticCritic");
 				criticReviewSource.setScrapeDate(LocalDate.now());
 				reviews.add(criticReviewSource);
 			} catch (NumberFormatException | NullPointerException e) {
@@ -104,10 +107,11 @@ public class MetaCriticScraperService {
 				ReviewSource userReviewSource = new ReviewSource();
 				userReviewSource.setAverageScore(userAverageScore);
 				userReviewSource.setNumberOfReviews(userReviewCount);
-				userReviewSource.setSource("https://www.metacritic.com"
+				userReviewSource.setSourceURL("https://www.metacritic.com"
 						+ doc.selectFirst(
 								".c-productScoreInfo.u-clearfix:not(.g-inner-spacing-bottom-medium) .c-productScoreInfo_reviewsTotal a")
 								.attr("href"));
+				userReviewSource.setSourceName("MetaCriticUser");
 				userReviewSource.setScrapeDate(LocalDate.now());
 				reviews.add(userReviewSource);
 			} catch (NumberFormatException | NullPointerException e) {

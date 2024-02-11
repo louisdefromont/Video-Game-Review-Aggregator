@@ -43,8 +43,6 @@ public class VideoGameScraperService {
 		return videoGames;
 	}
 
-	
-
 	@Async("taskExecutor")
 	public CompletableFuture<VideoGame> scrapeTitle(String title) {
 		VideoGame videoGame = videoGameRepository.findByTitle(title);
@@ -107,7 +105,7 @@ public class VideoGameScraperService {
 			for (ReviewSource reviewSource : videoGame2.getReviews()) {
 				Boolean found = false;
 				for (ReviewSource review : reviews) {
-					if (review.getSource().equals(reviewSource.getSource())) {
+					if (review.getSourceURL().equals(reviewSource.getSourceURL())) {
 						found = true;
 						if (reviewSource.getNumberOfReviews() > review.getNumberOfReviews()) {
 							reviews.remove(review);

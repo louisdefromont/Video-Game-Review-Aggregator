@@ -18,7 +18,8 @@ public class ReviewSource {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	private String source;
+	private String sourceName;
+	private String sourceURL;
 	private LocalDate scrapeDate;
 	private double averageScore;
 	private double numberOfReviews;

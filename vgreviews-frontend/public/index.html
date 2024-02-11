@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Page</title>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("searchForm");
+            form.addEventListener("submit", function (event) {
+                event.preventDefault(); // Prevent default form submission
+
+                // Get the search query from the input field
+                const query = document.getElementById("searchInput").value;
+
+                // Perform GET request to localhost:8080/api/search
+                fetch(`http://localhost:8080/api/search?query=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Display search results
+                        displayResults(data);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            });
+
+            function displayResults(results) {
+                const resultList = document.getElementById("searchResults");
+                resultList.innerHTML = ""; // Clear previous results
+
+                results.forEach(game => {
+                    const listItem = document.createElement("li");
+                    listItem.innerHTML = `
+                        <h2>${game.title}</h2>
+                        <p><strong>Platforms:</strong> ${game.platforms}</p>
+                        <p><strong>Release Date:</strong> ${game.releaseDate}</p>
+                        <p><strong>Publishers:</strong> ${game.publishers}</p>
+                        <p><strong>Genres:</strong> ${game.genres}</p>
+                        <h3>Reviews:</h3>
+                        <ul>
+                            ${game.reviews.map(review => `
+                                <li>
+                                    <a href="${review.source}">Source</a>
+                                    <p><strong>Average Score:</strong> ${review.averageScore}</p>
+                                    <p><strong>Number of Reviews:</strong> ${review.numberOfReviews}</p>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    `;
+                    resultList.appendChild(listItem);
+                });
+
+                if (results.length === 0) {
+                    const noResultItem = document.createElement("li");
+                    noResultItem.textContent = "No results found.";
+                    resultList.appendChild(noResultItem);
+                }
+            }
+        });
+    </script>
+</head>
+<body>
+    <h1>Search Page</h1>
+    <form id="searchForm">
+        <input type="text" id="searchInput" placeholder="Enter your search query">
+        <button type="submit">Search</button>
+    </form>
+    <ul id="searchResults"></ul>
+</body>
+</html>

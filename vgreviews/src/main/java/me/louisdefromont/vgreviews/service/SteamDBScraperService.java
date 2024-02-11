@@ -55,7 +55,7 @@ public class SteamDBScraperService {
 			double averageScore = Double.parseDouble(doc.select("[itemprop=\"ratingValue\"]").first().attr("content"));
 			double numberOfReviews = Double.parseDouble(doc.select("[itemprop=\"reviewCount\"]").first().attr("content"));
 			ReviewSource reviewSource = new ReviewSource();
-			reviewSource.setSource(url);
+			reviewSource.setSourceURL(url);
 			reviewSource.setScrapeDate(java.time.LocalDate.now());
 			reviewSource.setAverageScore(averageScore);
 			reviewSource.setNumberOfReviews(numberOfReviews);

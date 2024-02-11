@@ -20,8 +20,8 @@ public class SteamStoreScraperService {
 	public VideoGame scrape(VideoGame videoGame) {
 		if (videoGame.getReviews() != null) {
 			for (ReviewSource reviewSource : videoGame.getReviews()) {
-				if (reviewSource.getSource().contains("steampowered")) {
-					return scrapeFromSource(reviewSource.getSource());
+				if (reviewSource.getSourceURL().contains("steampowered")) {
+					return scrapeFromSource(reviewSource.getSourceURL());
 				}
 			}
 		}
@@ -108,7 +108,8 @@ public class SteamStoreScraperService {
 				}
 			}
 			ReviewSource reviewSource = new ReviewSource();
-			reviewSource.setSource(url);
+			reviewSource.setSourceURL(url);
+			reviewSource.setSourceName("Steam");
 			reviewSource.setScrapeDate(java.time.LocalDate.now());
 			reviewSource.setAverageScore(averageScore);
 			reviewSource.setNumberOfReviews(numberOfReviews);

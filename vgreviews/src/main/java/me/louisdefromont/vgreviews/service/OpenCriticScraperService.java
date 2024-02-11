@@ -47,8 +47,8 @@ public class OpenCriticScraperService {
 
 	public VideoGame scrape(VideoGame videoGame) {
 		for (ReviewSource reviewSource : videoGame.getReviews()) {
-			if (reviewSource.getSource().contains("opencritic")) {
-				return scrapeFromSource(reviewSource.getSource());
+			if (reviewSource.getSourceURL().contains("opencritic")) {
+				return scrapeFromSource(reviewSource.getSourceURL());
 			}
 		}
 		return scrape(videoGame.getTitle());
@@ -109,7 +109,8 @@ public class OpenCriticScraperService {
 				double averageScore = Double.parseDouble(doc.selectFirst("div.game-scores .inner-orb").text());
 				double criticCount = Double.parseDouble(doc.selectFirst(".text-right.my-1").text().split(" ")[2]);
 				ReviewSource reviewSource = new ReviewSource();
-				reviewSource.setSource(url);
+				reviewSource.setSourceURL(url);
+				reviewSource.setSourceName("OpenCritic");
 				reviewSource.setScrapeDate(LocalDate.now());
 				reviewSource.setAverageScore(averageScore);
 				reviewSource.setNumberOfReviews(criticCount);
